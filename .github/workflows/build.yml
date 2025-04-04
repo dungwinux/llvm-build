@@ -8,7 +8,7 @@ env:
   LLVM_SRC: ${{ github.workspace }}\llvm-project
   LIBXML: ${{ github.workspace }}/libxmlbuild/install
   BUILD_COMPILE_FLAGS: -DLIBXML_STATIC -march=skylake -mtune=skylake
-  STAGE0_BIN_DIR: ${{ github.workspace }}\llvm-project\stage0\bin
+  STAGE0_BIN_DIR: ${{ github.workspace }}\stage0\bin
 jobs:
   build:
     runs-on: windows-latest
@@ -27,12 +27,13 @@ jobs:
         -DLLVM_ENABLE_LIBXML2=FORCE_ON
         -DLLDB_ENABLE_LIBXML2=OFF
         -DCLANG_ENABLE_LIBXML2=OFF
-        -DCMAKE_C_FLAGS="-DLIBXML_STATIC"
-        -DCMAKE_CXX_FLAGS="-DLIBXML_STATIC"
+        -DCMAKE_C_FLAGS="-DLIBXML_STATIC -march=native"
+        -DCMAKE_CXX_FLAGS="-DLIBXML_STATIC -march=native"
+        -DCMAKE_LINKER=lld-link.exe
         -DLLVM_ENABLE_RPMALLOC=ON
         -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb;openmp"
         -DLLVM_ENABLE_RUNTIMES=compiler-rt
-        -DLLDB_TEST_COMPILER=${{ github.workspace }}/llvm-project/stage0/bin/clang.exe
+        -DLLDB_TEST_COMPILER=${{ github.workspace }}/stage0/bin/clang.exe
         -DLIBXML2_INCLUDE_DIR=${{ github.workspace }}/libxmlbuild/install/include/libxml2
         -DLIBXML2_LIBRARIES=${{ github.workspace }}/libxmlbuild/install/lib/libxml2s.lib
         -DCLANG_DEFAULT_LINKER=lld
@@ -41,11 +42,12 @@ jobs:
       BOOTSTRAP_CMAKE_FLAGS: >-
         -DCMAKE_C_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
         -DCMAKE_CXX_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
-        -DCMAKE_C_COMPILER=${{ github.workspace }}/llvm-project/stage0/bin/clang-cl.exe
-        -DCMAKE_CXX_COMPILER=${{ github.workspace }}/llvm-stage0/stage0/bin/clang-cl.exe
-        -DCMAKE_LINKER=${{ github.workspace }}/llvm-project/stage0/bin/lld-link.exe
-        -DCMAKE_AR=${{ github.workspace }}/llvm-project/stage0/bin/llvm-lib.exe
-        -DCMAKE_RC=${{ github.workspace }}/llvm-project/stage0/bin/llvm-windres.exe
+        -DCMAKE_C_COMPILER=${{ github.workspace }}/stage0/bin/clang-cl.exe
+        -DCMAKE_CXX_COMPILER=${{ github.workspace }}/stage0/bin/clang-cl.exe
+        -DCMAKE_LINKER=${{ github.workspace }}/stage0/bin/lld-link.exe
+        -DCMAKE_AR=${{ github.workspace }}/stage0/bin/llvm-lib.exe
+        -DCMAKE_RC=${{ github.workspace }}/stage0/bin/llvm-windres.exe
+      PROFILE: ${{ github.workspace }}/profile.profdata
     steps:
       - uses: actions/checkout@v4
       - uses: TheMrMilchmann/setup-msvc-dev@v3
@@ -56,7 +58,14 @@ jobs:
       - name: Install other buildtools
         run: choco install ninja gnuwin32-coreutils.install curl
       - name: Install libxml2
+        id: cache-libxml2
+        uses: actions/cache@v4
+        with:
+          path: libxmlbuild
+          key: ${{ runner.os }}-libxmlbuild
+      - name: Build libxml2
         shell: cmd
+        if: steps.cache-libxml2.outputs.cache-hit != 'true'
         run: |
           curl -O https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.9.12/libxml2-v2.9.12.tar.gz || exit /b 1
           tar zxf libxml2-v2.9.12.tar.gz
@@ -78,7 +87,6 @@ jobs:
             -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded ^
             ../libxml2-v2.9.12 || exit /b 1
           ninja install || exit /b 1
-          cd ..
       - name: Clone llvm
         run: |
           git clone -b main --single-branch --depth=1 "https://github.com/llvm/llvm-project" llvm-project
@@ -88,39 +96,35 @@ jobs:
         run: |
           mkdir stage0
           cd stage0
-          cmake %CMAKE_FLAGS:\=/% %LLVM_SRC%\llvm || exit /b 1
+          cmake %CMAKE_FLAGS:\=/% -DLLVM_TARGETS_TO_BUILD=Native %LLVM_SRC%\llvm || exit /b 1
           ninja || exit /b 1
           cd ..
-      - name: Generate profile for PGO
-        shell: cmd
-        env:
-          PROFILE: ${{ env.LLVM_SRC }}/profile.profdata
-        run: |
-          mkdir inst
-          cd inst
-          cmake %CMAKE_FLAGS:\=/% %BOOTSTRAP_CMAKE_FLAGS:\=/% ^
-            -DLLVM_TARGETS_TO_BUILD=Native ^
-            -DLLVM_BUILD_INSTRUMENTED=IR ^
-            %LLVM_SRC%\llvm || exit /b 1
-          ninja clang || ninja clang || ninja clang || exit /b 1
-          set "INSTCLANG=%cd:\=/%/bin/clang-cl.exe"
-          cd ..
-          mkdir train
-          cd train
-          cmake %CMAKE_FLAGS:\=/% %BOOTSTRAP_CMAKE_FLAGS:\=/% ^
-            -DCMAKE_C_COMPILER=%INSTCLANG% ^
-            -DCMAKE_CXX_COMPILER=%INSTCLANG% ^
-            -DLLVM_ENABLE_PROJECTS=clang ^
-            -DLLVM_TARGETS_TO_BUILD=Native ^
-            %LLVM_SRC%\llvm || exit /b 1
-          del ..\instrument\profiles\*.profraw
-          ninja tools/clang/lib/Sema/CMakeFiles/obj.clangSema.dir/Sema.cpp.obj
-          cd ..
-          %STAGE0_BIN_DIR%\llvm-profdata merge -output=%profile% instrument\profiles\*.profraw
+      # - name: Generate profile for PGO
+      #   shell: cmd
+      #   run: |
+      #     mkdir inst
+      #     cd inst
+      #     cmake %CMAKE_FLAGS:\=/% %BOOTSTRAP_CMAKE_FLAGS:\=/% ^
+      #       -DLLVM_TARGETS_TO_BUILD=Native ^
+      #       -DLLVM_BUILD_INSTRUMENTED=IR ^
+      #       %LLVM_SRC%\llvm || exit /b 1
+      #     ninja clang || ninja clang || ninja clang || exit /b 1
+      #     set "INSTCLANG=%cd:\=/%/bin/clang-cl.exe"
+      #     cd ..
+      #     mkdir train
+      #     cd train
+      #     cmake %CMAKE_FLAGS:\=/% %BOOTSTRAP_CMAKE_FLAGS:\=/% ^
+      #       -DCMAKE_C_COMPILER=%INSTCLANG% ^
+      #       -DCMAKE_CXX_COMPILER=%INSTCLANG% ^
+      #       -DLLVM_ENABLE_PROJECTS=clang ^
+      #       -DLLVM_TARGETS_TO_BUILD=Native ^
+      #       %LLVM_SRC%\llvm || exit /b 1
+      #     del ..\instrument\profiles\*.profraw
+      #     ninja tools/clang/lib/Sema/CMakeFiles/obj.clangSema.dir/Sema.cpp.obj
+      #     cd ..
+      #     %STAGE0_BIN_DIR%\llvm-profdata merge -output=%PROFILE:\=/% instrument\profiles\*.profraw
       - name: build
         shell: pwsh
-        env:
-          PROFILE: ${{ env.LLVM_SRC }}/profile.profdata
         run: |
           $version = "main-$(git rev-parse --short HEAD)"
           $filename = "clang+llvm-$version-x86_64-pc-windows-msvc"
@@ -128,7 +132,7 @@ jobs:
           cmake $($env:CMAKE_FLAGS -replace '\','/') `
             $($env:BOOTSTRAP_CMAKE_FLAGS -replace '\','/') `
             -DPACKAGE_VERSION=$version `
-            -DLLVM_PROFDATA_FILE=$($env:PROFILE -replace '\','/') `
+            # -DLLVM_PROFDATA_FILE=$($env:PROFILE -replace '\','/') `
             -DCMAKE_C_FLAGS="$env:BUILD_COMPILE_FLAGS -Wno-backend-plugin" `
             -DCMAKE_CXX_FLAGS="$env:BUILD_COMPILE_FLAGS -Wno-backend-plugin" `
             -DLLVM_INSTALL_TOOLCHAIN_ONLY=OFF `
