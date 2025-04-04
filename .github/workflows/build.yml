@@ -125,11 +125,14 @@ jobs:
       #     %STAGE0_BIN_DIR%\llvm-profdata merge -output=%PROFILE:\=/% instrument\profiles\*.profraw
       - name: record version
         shell: pwsh
-        run: "VERSION=main-$(git rev-parse --short HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        run: |
+          "VERSION=main-$(git rev-parse --short HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: build
         shell: cmd
         run: |
           set filename="clang+llvm-%VERSION%-x86_64-pc-windows-msvc"
+          mkdir build
+          cd build
           cmake %CMAKE_FLAGS:\=/% %BOOTSTRAP_CMAKE_FLAGS:\=/% ^
             -DPACKAGE_VERSION=%VERSION% ^
             -DCMAKE_C_FLAGS="%BUILD_COMPILE_FLAGS% -Wno-backend-plugin" ^
