@@ -149,7 +149,7 @@ jobs:
           ninja check-clang-tools
           ninja check-clangd
           ninja install
-          "${{ github.workspace }}/%filename%/bin/llvm-config.exe" --bindir
+          "${{ github.workspace }}\%filename%\bin\llvm-config.exe" --bindir
           cd .. 
           7z a "%filename%.7z" "%filename%"
       - name: Upload result
