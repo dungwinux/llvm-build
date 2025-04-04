@@ -29,15 +29,14 @@ jobs:
         -DCMAKE_C_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
         -DCMAKE_CXX_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
         -DLLVM_ENABLE_RPMALLOC=ON
-        -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;compiler-rt;lldb;openmp"
+        -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb;openmp"
+        -DLLVM_ENABLE_RUNTIMES=compiler-rt
         -DCMAKE_C_COMPILER=clang-cl.exe
         -DCMAKE_CXX_COMPILER=clang-cl.exe
         -DCMAKE_LINKER=lld-link.exe
         -DCMAKE_AR=llvm-lib.exe
         -DCMAKE_RC=llvm-windres.exe
         -DCLANG_DEFAULT_LINKER=lld
-        -DLIBXML2_INCLUDE_DIR=${{ github.workspace }}/libxmlbuild/install/include/libxml2
-        -DLIBXML2_LIBRARIES=${{ github.workspace }}/libxmlbuild/install/lib/libxml2s.lib
         -DCOMPILER_RT_BUILD_PROFILE=OFF
         -DCOMPILER_RT_BUILD_SANITIZERS=OFF
     steps:
@@ -84,6 +83,8 @@ jobs:
           mkdir inst
           cd inst
           cmake %CMAKE_FLAGS% ^
+            -DLIBXML2_INCLUDE_DIR=%LIBXML:\=/%/include/libxml2 ^
+            -DLIBXML2_LIBRARIES=%LIBXML:\=/%/lib/libxml2s.lib ^
             -DLLVM_TARGETS_TO_BUILD=Native ^
             -DLLVM_BUILD_INSTRUMENTED=IR ^
             %LLVM_SRC%\llvm || exit /b 1
@@ -93,6 +94,8 @@ jobs:
           mkdir train
           cd train
           cmake %CMAKE_FLAGS% ^
+            -DLIBXML2_INCLUDE_DIR=%LIBXML:\=/%/include/libxml2 ^
+            -DLIBXML2_LIBRARIES=%LIBXML:\=/%/lib/libxml2s.lib ^
             -DCMAKE_C_COMPILER=%INSTCLANG% ^
             -DCMAKE_CXX_COMPILER=%INSTCLANG% ^
             -DLLVM_ENABLE_PROJECTS=clang ^
@@ -110,6 +113,8 @@ jobs:
           $version = "main-$(git rev-parse --short HEAD)"
           $filename = "clang+llvm-$version-x86_64-pc-windows-msvc"
           cmake $env:CMAKE_FLAGS `
+            -DLIBXML2_INCLUDE_DIR=$($env:LIBXML -replace '\','/')/include/libxml2 `
+            -DLIBXML2_LIBRARIES=$($env:LIBXML -replace '\','/')/lib/libxml2s.lib `
             -DPACKAGE_VERSION=$version `
             -DLLVM_PROFDATA_FILE=$env:PROFILE `
             -DCMAKE_C_FLAGS="$env:COMPILE_FLAGS -Wno-backend-plugin" `
