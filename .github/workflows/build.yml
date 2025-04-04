@@ -4,42 +4,44 @@ on: [push]
 
 # Largely based on build_llvm_release.bat (https://github.com/llvm/llvm-project)
 
+env:
+  LLVM_SRC: ${{ github.workspace }}\llvm-project
+  LIBXML: ${{ github.workspace }}/libxmlbuild/install
+  PROFILE: ${{ LLVM_SRC }}/profile.profdata
+  COMPILE_FLAGS: -DLIBXML_STATIC -march=skylake -mtune=skylake
+  CMAKE_FLAGS: |
+    -GNinja
+    -DCMAKE_BUILD_TYPE=Release
+    -DLLVM_ENABLE_ASSERTIONS=OFF
+    -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON
+    -DLLVM_TARGETS_TO_BUILD="AArch64;ARM;X86;BPF;WebAssembly;RISCV;NVPTX"
+    -DLLVM_BUILD_LLVM_C_DYLIB=ON
+    -DPython3_FIND_REGISTRY=NEVER
+    -DLLDB_RELOCATABLE_PYTHON=1
+    -DLLDB_EMBED_PYTHON_HOME=OFF
+    -DCMAKE_CL_SHOWINCLUDES_PREFIX="Note: including file: "
+    -DLLVM_ENABLE_LIBXML2=FORCE_ON
+    -DLLDB_ENABLE_LIBXML2=OFF
+    -DCLANG_ENABLE_LIBXML2=OFF
+    -DCMAKE_C_FLAGS="{{ env.COMPILE_FLAGS }}"
+    -DCMAKE_CXX_FLAGS="{{ env.COMPILE_FLAGS }}"
+    -DLLVM_ENABLE_RPMALLOC=ON
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;compiler-rt;lldb;openmp"
+    -DCMAKE_C_COMPILER=clang-cl.exe
+    -DCMAKE_CXX_COMPILER=clang-cl.exe
+    -DCMAKE_LINKER=lld-link.exe
+    -DCMAKE_AR=llvm-lib.exe
+    -DCMAKE_RC=llvm-windres.exe
+    -DCLANG_DEFAULT_LINKER=lld
+    -DLIBXML2_INCLUDE_DIR={{ env.LIBXML }}/include/libxml2
+    -DLIBXML2_LIBRARIES={{ env.LIBXML }}/lib/libxml2s.lib
+    -DCOMPILER_RT_BUILD_PROFILE=OFF
+    -DCOMPILER_RT_BUILD_SANITIZERS=OFF
+
 jobs:
   build:
     runs-on: windows-latest
-    env:
-      LLVM_SRC: ${{ github.workspace }}\llvm-project
-      LIBXML: ${{ github.workspace }}/libxmlbuild/install
-      PROFILE: ${{ LLVM_SRC }}/profile.profdata
-      COMPILE_FLAGS: -DLIBXML_STATIC -march=skylake -mtune=skylake
-      CMAKE_FLAGS: |
-        -GNinja
-        -DCMAKE_BUILD_TYPE=Release
-        -DLLVM_ENABLE_ASSERTIONS=OFF
-        -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON
-        -DLLVM_TARGETS_TO_BUILD="AArch64;ARM;X86;BPF;WebAssembly;RISCV;NVPTX"
-        -DLLVM_BUILD_LLVM_C_DYLIB=ON
-        -DPython3_FIND_REGISTRY=NEVER
-        -DLLDB_RELOCATABLE_PYTHON=1
-        -DLLDB_EMBED_PYTHON_HOME=OFF
-        -DCMAKE_CL_SHOWINCLUDES_PREFIX="Note: including file: "
-        -DLLVM_ENABLE_LIBXML2=FORCE_ON
-        -DLLDB_ENABLE_LIBXML2=OFF
-        -DCLANG_ENABLE_LIBXML2=OFF
-        -DCMAKE_C_FLAGS="{{ env.COMPILE_FLAGS }}"
-        -DCMAKE_CXX_FLAGS="{{ env.COMPILE_FLAGS }}"
-        -DLLVM_ENABLE_RPMALLOC=ON
-        -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;compiler-rt;lldb;openmp"
-        -DCMAKE_C_COMPILER=clang-cl.exe
-        -DCMAKE_CXX_COMPILER=clang-cl.exe
-        -DCMAKE_LINKER=lld-link.exe
-        -DCMAKE_AR=llvm-lib.exe
-        -DCMAKE_RC=llvm-windres.exe
-        -DCLANG_DEFAULT_LINKER=lld
-        -DLIBXML2_INCLUDE_DIR={{ env.LIBXML }}/include/libxml2
-        -DLIBXML2_LIBRARIES={{ env.LIBXML }}/lib/libxml2s.lib
-        -DCOMPILER_RT_BUILD_PROFILE=OFF
-        -DCOMPILER_RT_BUILD_SANITIZERS=OFF
+
     steps:
       - uses: actions/checkout@v4
       - uses: TheMrMilchmann/setup-msvc-dev@v3
