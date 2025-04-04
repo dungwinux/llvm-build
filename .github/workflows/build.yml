@@ -12,7 +12,6 @@ jobs:
   build:
     runs-on: windows-latest
     env:
-      PROFILE: ${{ env.LLVM_SRC }}/profile.profdata
       CMAKE_FLAGS: |
         -GNinja
         -DCMAKE_BUILD_TYPE=Release
@@ -27,8 +26,8 @@ jobs:
         -DLLVM_ENABLE_LIBXML2=FORCE_ON
         -DLLDB_ENABLE_LIBXML2=OFF
         -DCLANG_ENABLE_LIBXML2=OFF
-        -DCMAKE_C_FLAGS="{{ env.COMPILE_FLAGS }}"
-        -DCMAKE_CXX_FLAGS="{{ env.COMPILE_FLAGS }}"
+        -DCMAKE_C_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
+        -DCMAKE_CXX_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
         -DLLVM_ENABLE_RPMALLOC=ON
         -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;compiler-rt;lldb;openmp"
         -DCMAKE_C_COMPILER=clang-cl.exe
@@ -37,8 +36,8 @@ jobs:
         -DCMAKE_AR=llvm-lib.exe
         -DCMAKE_RC=llvm-windres.exe
         -DCLANG_DEFAULT_LINKER=lld
-        -DLIBXML2_INCLUDE_DIR={{ env.LIBXML }}/include/libxml2
-        -DLIBXML2_LIBRARIES={{ env.LIBXML }}/lib/libxml2s.lib
+        -DLIBXML2_INCLUDE_DIR=${{ github.workspace }}/libxmlbuild/install/include/libxml2
+        -DLIBXML2_LIBRARIES=${{ github.workspace }}/libxmlbuild/install/lib/libxml2s.lib
         -DCOMPILER_RT_BUILD_PROFILE=OFF
         -DCOMPILER_RT_BUILD_SANITIZERS=OFF
     steps:
@@ -79,6 +78,8 @@ jobs:
           cd llvm-project
       - name: Generate profile for PGO
         shell: cmd
+        env:
+          PROFILE: ${{ env.LLVM_SRC }}/profile.profdata
         run: |
           mkdir inst
           cd inst
@@ -101,6 +102,8 @@ jobs:
           llvm-profdata merge -output=%profile% instrument\profiles\*.profraw
       - name: build
         shell: pwsh
+        env:
+          PROFILE: ${{ env.LLVM_SRC }}/profile.profdata
         run: |
           $version = "main-$(git rev-parse --short HEAD)"
           $filename = "clang+llvm-$version-x86_64-pc-windows-msvc"
