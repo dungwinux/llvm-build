@@ -83,14 +83,16 @@ jobs:
         run: |
           mkdir inst
           cd inst
-          cmake %CMAKE_FLAGS% -DLLVM_TARGETS_TO_BUILD=Native ^
-            -DLLVM_BUILD_INSTRUMENTED=IR %LLVM_SRC%\llvm || exit /b 1
+          cmake ${{ env.CMAKE_FLAGS }} ^
+            -DLLVM_TARGETS_TO_BUILD=Native ^
+            -DLLVM_BUILD_INSTRUMENTED=IR ^
+            %LLVM_SRC%\llvm || exit /b 1
           ninja clang || ninja clang || ninja clang || exit /b 1
           set "INSTCLANG=%cd:\=/%/bin/clang-cl.exe"
           cd ..
           mkdir train
           cd train
-          cmake %CMAKE_FLAGS% ^
+          cmake ${{ env.CMAKE_FLAGS }} ^
             -DCMAKE_C_COMPILER=%INSTCLANG% ^
             -DCMAKE_CXX_COMPILER=%INSTCLANG% ^
             -DLLVM_ENABLE_PROJECTS=clang ^
