@@ -89,7 +89,7 @@ jobs:
           ninja install || exit /b 1
       - name: Clone llvm
         run: |
-          git clone -b main --single-branch --depth=1 "https://github.com/llvm/llvm-project" llvm-project
+          git clone -b "release/20.x" --single-branch --depth=1 "https://github.com/llvm/llvm-project" llvm-project
           cd llvm-project
       - name: bootstrap prepare
         shell: cmd
