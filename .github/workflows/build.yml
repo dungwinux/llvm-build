@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: windows-latest
     env:
-      CMAKE_FLAGS: |
+      CMAKE_FLAGS: >-
         -GNinja
         -DCMAKE_BUILD_TYPE=Release
         -DLLVM_ENABLE_ASSERTIONS=OFF
@@ -83,7 +83,7 @@ jobs:
         run: |
           mkdir inst
           cd inst
-          cmake ${{ env.CMAKE_FLAGS }} ^
+          cmake %CMAKE_FLAGS% ^
             -DLLVM_TARGETS_TO_BUILD=Native ^
             -DLLVM_BUILD_INSTRUMENTED=IR ^
             %LLVM_SRC%\llvm || exit /b 1
@@ -92,7 +92,7 @@ jobs:
           cd ..
           mkdir train
           cd train
-          cmake ${{ env.CMAKE_FLAGS }} ^
+          cmake %CMAKE_FLAGS% ^
             -DCMAKE_C_COMPILER=%INSTCLANG% ^
             -DCMAKE_CXX_COMPILER=%INSTCLANG% ^
             -DLLVM_ENABLE_PROJECTS=clang ^
