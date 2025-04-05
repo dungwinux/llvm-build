@@ -135,7 +135,7 @@ jobs:
           set filename="clang+llvm-%VERSION%-x86_64-pc-windows-msvc"
           mkdir build
           cd build
-          cmake %CMAKE_FLAGS:\=/%
+          cmake %CMAKE_FLAGS:\=/% ^
             -DCMAKE_C_COMPILER=clang-cl.exe ^
             -DCMAKE_CXX_COMPILER=clang-cl.exe ^
             -DCMAKE_C_FLAGS="%BUILD_COMPILE_FLAGS% -Wno-backend-plugin" ^
