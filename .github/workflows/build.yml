@@ -1,19 +1,21 @@
 name: LLVM CICD
 
-on: [push]
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      customver:
+        description: 'Set custom major version (default: 20)'
+        required: true
+        default: '20'
 
 # Largely based on build_llvm_release.bat (https://github.com/llvm/llvm-project)
-inputs:
-  majorver:
-    description: 'Custom major version (default: 20)'
-    required: true
-    default: "20"
 env:
   LLVM_SRC: ${{ github.workspace }}\llvm-project
   LIBXML: ${{ github.workspace }}/libxmlbuild/install
   BUILD_COMPILE_FLAGS: -DLIBXML_STATIC -march=skylake -mtune=skylake
   STAGE0_BIN_DIR: ${{ github.workspace }}\stage0\bin
-  MAJORVER: ${{ vars.majorver }}
+  MAJORVER: ${{ github.event.inputs.customver || '20' }}
 jobs:
   build:
     runs-on: windows-2025
