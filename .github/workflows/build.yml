@@ -66,7 +66,7 @@ jobs:
           uwp: false
           spectre: true
       - name: Install other buildtools
-        run: choco install ninja gnuwin32-coreutils.install curl
+        run: choco install ninja gnuwin32-coreutils.portable
       - name: Install libxml2
         id: cache-libxml2
         uses: actions/cache@v4
@@ -98,8 +98,8 @@ jobs:
             ../libxml2-v2.9.12 || exit /b 1
           ninja install || exit /b 1
       - name: Clone llvm
-          git clone -b "release/${{ env.MAJORVER }}.x" --single-branch --depth=1 "https://github.com/llvm/llvm-project" llvm-project
         run: |
+          git clone -b "release/${{ env.MAJORVER }}.x" --single-branch --depth=1 "https://github.com/llvm/llvm-project" llvm-project
           cd llvm-project
       # - name: bootstrap prepare
       #   shell: cmd
