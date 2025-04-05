@@ -137,7 +137,7 @@ jobs:
         shell: pwsh
         run: |
           cd $env:LLVM_SRC
-          "VERSION=%MAJORVER%_$(git rev-parse --short HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VERSION=$($env:MAJORVER)_$(git rev-parse --short HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: build
         shell: cmd
         run: |
@@ -156,7 +156,7 @@ jobs:
           "${{ github.workspace }}\%filename%\bin\llvm-config.exe" --bindir || exit /b 1
           cd ..
           REM Log build version
-          echo b${{ github.run_number }}.${{ env.MAJORVER }} > %filename%\build_info.txt
+          echo b${{ github.run_number }}.${{ env.MAJORVER }}> %filename%\build_info.txt
           7z a "%filename%.7z" "%filename%"
       - name: Upload result
         uses: ncipollo/release-action@v1
