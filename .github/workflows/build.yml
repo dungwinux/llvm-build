@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       customver:
-        description: 'Set custom major version (default: 20)'
+        description: 'Set custom major version (default: 20 for release/20.x)'
         required: true
         default: '20'
 
@@ -162,7 +162,7 @@ jobs:
         uses: ncipollo/release-action@v1
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
-          name: b${{ github.run_number }}.${{ env.MAJORVER }}
+          tag: b${{ github.run_number }}.${{ env.MAJORVER }}
           artifacts: clang*.7z
           artifactContentType: application/x-7z-compressed
           body: "LLVM release build"
