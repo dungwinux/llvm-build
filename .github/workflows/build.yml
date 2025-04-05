@@ -3,15 +3,22 @@ name: LLVM CICD
 on: [push]
 
 # Largely based on build_llvm_release.bat (https://github.com/llvm/llvm-project)
-
+inputs:
+  majorver:
+    description: 'Custom major version (default: 20)'
+    required: true
+    default: "20"
 env:
   LLVM_SRC: ${{ github.workspace }}\llvm-project
   LIBXML: ${{ github.workspace }}/libxmlbuild/install
   BUILD_COMPILE_FLAGS: -DLIBXML_STATIC -march=skylake -mtune=skylake
   STAGE0_BIN_DIR: ${{ github.workspace }}\stage0\bin
+  MAJORVER: ${{ vars.majorver }}
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025
+    permissions:
+      contents: write
     env:
       CMAKE_FLAGS: >-
         -GNinja
@@ -89,8 +96,8 @@ jobs:
             ../libxml2-v2.9.12 || exit /b 1
           ninja install || exit /b 1
       - name: Clone llvm
+          git clone -b "release/${{ env.MAJORVER }}.x" --single-branch --depth=1 "https://github.com/llvm/llvm-project" llvm-project
         run: |
-          git clone -b "release/20.x" --single-branch --depth=1 "https://github.com/llvm/llvm-project" llvm-project
           cd llvm-project
       # - name: bootstrap prepare
       #   shell: cmd
@@ -128,7 +135,7 @@ jobs:
         shell: pwsh
         run: |
           cd $env:LLVM_SRC
-          "VERSION=20_$(git rev-parse --short HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "VERSION=%MAJORVER%_$(git rev-parse --short HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: build
         shell: cmd
         run: |
@@ -146,11 +153,17 @@ jobs:
           ninja install || exit /b 1
           "${{ github.workspace }}\%filename%\bin\llvm-config.exe" --bindir || exit /b 1
           cd ..
+          REM Log build version
+          echo b${{ github.run_number }}.${{ env.MAJORVER }} > %filename%\build_info.txt
           7z a "%filename%.7z" "%filename%"
       - name: Upload result
-        uses: actions/upload-artifact@v4
+        uses: ncipollo/release-action@v1
+        if: ${{ github.ref == 'refs/heads/main' }}
         with:
-          name: LLVM
-          path: ${{ github.workspace }}/clang*.7z
-          compression-level: 0
-          if-no-files-found: error
+          name: b${{ github.run_number }}.${{ env.MAJORVER }}
+          artifacts: clang*.7z
+          artifactContentType: application/x-7z-compressed
+          body: "LLVM release build"
+          prerelease: true
+          allowUpdates: true
+          artifactErrorsFailBuild: true
