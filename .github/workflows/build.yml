@@ -59,7 +59,6 @@ jobs:
         -DCMAKE_RC=${{ github.workspace }}/stage0/bin/llvm-windres.exe
       PROFILE: ${{ github.workspace }}/profile.profdata
     steps:
-      - uses: actions/checkout@v4
       - uses: TheMrMilchmann/setup-msvc-dev@v3
         with:
           arch: x64
@@ -98,9 +97,11 @@ jobs:
             ../libxml2-v2.9.12 || exit /b 1
           ninja install || exit /b 1
       - name: Clone llvm
-        run: |
-          git clone -b "release/${{ env.MAJORVER }}.x" --single-branch --depth=1 "https://github.com/llvm/llvm-project" llvm-project
-          cd llvm-project
+        uses: actions/checkout@v4
+        with:
+          repository: 'llvm/llvm-project'
+          ref: 'release/${{ env.MAJORVER }}.x'
+          path: 'llvm-project'
       # - name: bootstrap prepare
       #   shell: cmd
       #   run: |
