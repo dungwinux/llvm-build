@@ -30,7 +30,6 @@ jobs:
         -DLLVM_TARGETS_TO_BUILD="AArch64;ARM;X86;WebAssembly;NVPTX"
         -DLLVM_BUILD_LLVM_C_DYLIB=ON
         -DPython3_FIND_REGISTRY=NEVER
-        -DLLDB_RELOCATABLE_PYTHON=1
         -DLLDB_EMBED_PYTHON_HOME=OFF
         -DCMAKE_CL_SHOWINCLUDES_PREFIX="Note: including file: "
         -DLLVM_ENABLE_LIBXML2=FORCE_ON
@@ -49,23 +48,23 @@ jobs:
         -DLLVM_INCLUDE_BENCHMARKS=OFF
         -DLLVM_INCLUDE_TESTS=OFF
         -DLLVM_BUILD_TESTS=OFF
-      BOOTSTRAP_CMAKE_FLAGS: >-
-        -DCMAKE_C_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
-        -DCMAKE_CXX_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
-        -DCMAKE_C_COMPILER=${{ github.workspace }}/stage0/bin/clang-cl.exe
-        -DCMAKE_CXX_COMPILER=${{ github.workspace }}/stage0/bin/clang-cl.exe
-        -DCMAKE_LINKER=${{ github.workspace }}/stage0/bin/lld-link.exe
-        -DCMAKE_AR=${{ github.workspace }}/stage0/bin/llvm-lib.exe
-        -DCMAKE_RC=${{ github.workspace }}/stage0/bin/llvm-windres.exe
-      PROFILE: ${{ github.workspace }}/profile.profdata
+      # BOOTSTRAP_CMAKE_FLAGS: >-
+      #   -DCMAKE_C_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
+      #   -DCMAKE_CXX_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
+      #   -DCMAKE_C_COMPILER=${{ github.workspace }}/stage0/bin/clang-cl.exe
+      #   -DCMAKE_CXX_COMPILER=${{ github.workspace }}/stage0/bin/clang-cl.exe
+      #   -DCMAKE_LINKER=${{ github.workspace }}/stage0/bin/lld-link.exe
+      #   -DCMAKE_AR=${{ github.workspace }}/stage0/bin/llvm-lib.exe
+      #   -DCMAKE_RC=${{ github.workspace }}/stage0/bin/llvm-windres.exe
+      # PROFILE: ${{ github.workspace }}/profile.profdata
     steps:
       - uses: TheMrMilchmann/setup-msvc-dev@v3
         with:
           arch: x64
           uwp: false
           spectre: true
-      - name: Install other buildtools
-        run: choco install ninja gnuwin32-coreutils.portable
+      # - name: Install other buildtools
+      #   run: choco install gnuwin32-coreutils.portable
       - name: Install libxml2
         id: cache-libxml2
         uses: actions/cache@v4
