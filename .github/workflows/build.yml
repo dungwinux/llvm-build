@@ -148,7 +148,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHONVER }}
       - name: Setup Python
-        shell: cmd
+        shell: pwsh
         run: |
           echo "LIB=$env:LIB;C:\hostedtoolcache\windows\Python\${{ env.PYTHONVER }}\x64\libs" >> $env:GITHUB_ENV
       - name: build
@@ -182,5 +182,6 @@ jobs:
           prerelease: true
           allowUpdates: true
           artifactErrorsFailBuild: true
+
 
 
