@@ -7,7 +7,7 @@ on:
       customver:
         description: 'Set custom major version (default: 20 for release/20.x)'
         required: true
-        default: '20'
+        default: '22'
 
 # Largely based on build_llvm_release.bat (https://github.com/llvm/llvm-project)
 env:
@@ -138,6 +138,14 @@ jobs:
         run: |
           cd $env:LLVM_SRC
           "VERSION=$($env:MAJORVER)_$(git rev-parse --short HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Select Python version
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11.9'
+      - name: Setup Python
+        shell: cmd
+        run: |
+          echo "LIB=$env:LIB;C:\hostedtoolcache\windows\Python\3.11.9\x64\libs" >> $env:GITHUB_ENV
       - name: build
         shell: cmd
         run: |
