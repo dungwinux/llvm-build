@@ -5,9 +5,13 @@ on:
   workflow_dispatch:
     inputs:
       customver:
-        description: 'Set custom major version (default: 20 for release/20.x)'
+        description: 'Set custom major version (default: 22 for release/22.x)'
         required: true
         default: '22'
+      pythonver:
+        description: 'Set custom python version (default: 3.11.9 for 22)
+        required: true
+        default: '3.11.9'
 
 # Largely based on build_llvm_release.bat (https://github.com/llvm/llvm-project)
 env:
@@ -15,7 +19,8 @@ env:
   LIBXML: ${{ github.workspace }}/libxmlbuild/install
   BUILD_COMPILE_FLAGS: -DLIBXML_STATIC -march=skylake -mtune=skylake
   STAGE0_BIN_DIR: ${{ github.workspace }}\stage0\bin
-  MAJORVER: ${{ github.event.inputs.customver || '20' }}
+  MAJORVER: ${{ github.event.inputs.customver || '22' }}
+  PYTHONVER: ${{ github.event.inputs.pythonver || '3.11.9' }}
 jobs:
   build:
     runs-on: windows-2025
@@ -141,11 +146,11 @@ jobs:
       - name: Select Python version
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11.9'
+          python-version: ${{ env.PYTHONVER }}
       - name: Setup Python
         shell: cmd
         run: |
-          echo "LIB=$env:LIB;C:\hostedtoolcache\windows\Python\3.11.9\x64\libs" >> $env:GITHUB_ENV
+          echo "LIB=$env:LIB;C:\hostedtoolcache\windows\Python\${{ env.PYTHONVER }}\x64\libs" >> $env:GITHUB_ENV
       - name: build
         shell: cmd
         run: |
@@ -177,3 +182,4 @@ jobs:
           prerelease: true
           allowUpdates: true
           artifactErrorsFailBuild: true
+
