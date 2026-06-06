@@ -32,7 +32,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=Release
         -DLLVM_ENABLE_ASSERTIONS=OFF
         -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON
-        -DLLVM_TARGETS_TO_BUILD="AArch64;ARM;X86;WebAssembly;NVPTX"
+        -DLLVM_TARGETS_TO_BUILD="AArch64;ARM;X86"
         -DLLVM_BUILD_LLVM_C_DYLIB=ON
         -DPython3_FIND_REGISTRY=NEVER
         -DLLDB_EMBED_PYTHON_HOME=OFF
@@ -43,16 +43,21 @@ jobs:
         -DCMAKE_C_FLAGS="-DLIBXML_STATIC"
         -DCMAKE_CXX_FLAGS="-DLIBXML_STATIC"
         -DCMAKE_LINKER=lld-link.exe
+        -DLLVM_ENABLE_LLD=ON
+        -DLLVM_ENABLE_LIBCXX=ON
         -DLLVM_ENABLE_RPMALLOC=ON
-        -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb"
+        -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld"
         -DLLVM_ENABLE_RUNTIMES="compiler-rt;openmp"
         -DLIBXML2_INCLUDE_DIR=${{ github.workspace }}/libxmlbuild/install/include/libxml2
         -DLIBXML2_LIBRARIES=${{ github.workspace }}/libxmlbuild/install/lib/libxml2s.lib
         -DCOMPILER_RT_BUILD_PROFILE=OFF
-        -DCOMPILER_RT_BUILD_SANITIZERS=OFF
+        -DCOMPILER_RT_BUILD_SANITIZERS=ON
+        -DLLVM_INCLUDE_EXAMPLES=OFF
         -DLLVM_INCLUDE_BENCHMARKS=OFF
         -DLLVM_INCLUDE_TESTS=OFF
         -DLLVM_BUILD_TESTS=OFF
+        -DLLVM_BUILD_DOCS=OFF
+        -DLLVM_ENABLE_DOXYGEN=OFF
       # BOOTSTRAP_CMAKE_FLAGS: >-
       #   -DCMAKE_C_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
       #   -DCMAKE_CXX_FLAGS="-DLIBXML_STATIC -march=skylake -mtune=skylake"
