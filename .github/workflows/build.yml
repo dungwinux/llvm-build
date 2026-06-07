@@ -50,7 +50,7 @@ jobs:
         -DLLVM_ENABLE_RUNTIMES="compiler-rt;openmp"
         -DLIBXML2_INCLUDE_DIR=${{ github.workspace }}/libxmlbuild/install/include/libxml2
         -DLIBXML2_LIBRARIES=${{ github.workspace }}/libxmlbuild/install/lib/libxml2s.lib
-        -DCOMPILER_RT_BUILD_PROFILE=OFF
+        -DCOMPILER_RT_BUILD_PROFILE=ON
         -DCOMPILER_RT_BUILD_SANITIZERS=OFF
         -DLLVM_INCLUDE_EXAMPLES=OFF
         -DLLVM_INCLUDE_BENCHMARKS=OFF
@@ -119,6 +119,7 @@ jobs:
             -DCMAKE_C_FLAGS="-DLIBXML_STATIC -march=native -mtune=native" ^
             -DCMAKE_CXX_FLAGS="-DLIBXML_STATIC -march=native -mtune=native" ^
             -DLLVM_TARGETS_TO_BUILD=Native ^
+            -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON ^
             %LLVM_SRC%\llvm || exit /b 1
           ninja -j4 || exit /b 1
           cd ..
@@ -143,6 +144,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=%INSTCLANG% ^
             -DLLVM_ENABLE_PROJECTS=clang ^
             -DLLVM_TARGETS_TO_BUILD=Native ^
+            -DCOMPILER_RT_BUILD_PROFILE=OFF ^
             %LLVM_SRC%\llvm || exit /b 1
           del ..\instrument\profiles\*.profraw
           ninja tools/clang/lib/Sema/CMakeFiles/obj.clangSema.dir/Sema.cpp.obj
