@@ -146,10 +146,10 @@ jobs:
             -DLLVM_TARGETS_TO_BUILD=Native ^
             -DCOMPILER_RT_BUILD_PROFILE=OFF ^
             %LLVM_SRC%\llvm || exit /b 1
-          del ..\instrument\profiles\*.profraw
+          del ..\inst\profiles\*.profraw
           ninja tools/clang/lib/Sema/CMakeFiles/obj.clangSema.dir/Sema.cpp.obj
           cd ..
-          %STAGE0_BIN_DIR%\llvm-profdata merge -output=%PROFILE:\=/% instrument\profiles\*.profraw
+          %STAGE0_BIN_DIR%\llvm-profdata merge -output=%PROFILE:\=/% inst\profiles\*.profraw
       - name: record version
         shell: pwsh
         run: |
