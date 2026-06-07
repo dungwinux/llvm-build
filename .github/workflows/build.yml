@@ -122,7 +122,7 @@ jobs:
             -DCMAKE_C_FLAGS="-DLIBXML_STATIC -march=native -mtune=native" ^
             -DCMAKE_CXX_FLAGS="-DLIBXML_STATIC -march=native -mtune=native" ^
             -DLLVM_TARGETS_TO_BUILD=Native ^
-            -DLLVM_ENABLE_PROJECTS="clang;lld"
+            -DLLVM_ENABLE_PROJECTS="clang;lld" ^
             -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON ^
             %LLVM_SRC%\llvm || exit /b 1
           ninja || exit /b 1
@@ -137,6 +137,7 @@ jobs:
             -DCMAKE_CXX_FLAGS="%BUILD_COMPILE_FLAGS% -Wno-backend-plugin" ^
             -DLLVM_TARGETS_TO_BUILD=Native ^
             -DLLVM_BUILD_INSTRUMENTED=IR ^
+            -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON ^
             %LLVM_SRC%\llvm || exit /b 1
           ninja clang || ninja clang || ninja clang || exit /b 1
           set "INSTCLANG=%cd:\=/%/bin/clang-cl.exe"
@@ -148,6 +149,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=%INSTCLANG% ^
             -DLLVM_ENABLE_PROJECTS=clang ^
             -DLLVM_TARGETS_TO_BUILD=Native ^
+            -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON ^
             -DCOMPILER_RT_BUILD_PROFILE=OFF ^
             %LLVM_SRC%\llvm || exit /b 1
           del ..\inst\profiles\*.profraw
